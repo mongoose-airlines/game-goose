@@ -1,8 +1,8 @@
-const User = require('../models/user');
+const User = require("../models/user");
 
 module.exports = {
-  index
-}
+  index,
+};
 
 function index(req, res) {
   User.find({}).then((users) => {

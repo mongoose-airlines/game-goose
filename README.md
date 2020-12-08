@@ -3,23 +3,22 @@
 
 ## Setup Instructions:
 ___
-### Navigate to your code directory and clone the codealong repo:
+### Start by cloning the codealong repo to your machine:
+
 ```
-cd code
-git clone https://git.generalassemb.ly/SEI-R/gamegoose.git
+git clone https://github.com/mongoose-airlines/game-goose.git
 ```
-### Navigate into the directory and add an upstream so that you're able to pull code if you fall behind, or encounter errors from typos:
-```
-cd gamegoose
-git remote add upstream https://git.generalassemb.ly/SEI-R/gamegoose.git
-``` 
+
 ### As a reminder, the commands to pull the most recent version of the code from the repo, (and overwriting your current code) are:
+
 ```
 git fetch --all
 git reset --hard origin/main
 ```
 ___
+
 ## Starter code:
+
 #### Items of note:
 - Google OAuth is configured
 - passport is configured
@@ -35,7 +34,9 @@ ___
 
 ### Auth has been configured!  Let's take a look at our existing code and see what we're starting with.
 #### (Your instructor will open the app and show each of the files, routes, and controller functions on the starter code.)
+
 ### The app won't work without a .env file, because it will contain the following items:
+
 ```
 DATABASE_URL=XXXXXXXXXXXX
 GOOGLE_CLIENT_ID=XXXXXXXXX
@@ -43,28 +44,32 @@ GOOGLE_SECRET=XXXXXXXXXXX
 GOOGLE_CALLBACK=http://localhost:3000/auth/google/oauth2callback
 SESSION_SECRET=XXXXXXXXXXX
 ```
+
 - We'll use a single DATABASE_URL so that we can all add/remove data from the database as we move forward.
 - The GOOGLE_CLIENT_ID and GOOGLE_SECRET values are already set up as well.  If you wanted to hook this application up to your own personal app, you can generate new values in your Google Developer Console.  (Make sure to add the callback URI as well!)
 - The SESSION_SECRET can be set to anything you'd like.
+- 
 #### (Your instructor will share the contents of the .env with you in Slack right now.)
-#
+
+
 ### Directories for partial views have been included.  The header contains a navbar, which we'll be adding to as we develop the application.  Check out the conditional rendering that's been set up to show different options based on whether there's a user logged in or not!  (Also, checkout the sweet goose noise when you click on the goose.)
-# 
+
 ___
 
 # Plan of attack:
 
 #### You can find a deployed version of the final version of the app we're building [here](https://gamegoose.herokuapp.com/).  Check it out if you're not already familiar with the functionality we'll need to code out.
-# 
+
+
 #### Before we start building anything, we need to plan a few things out beforehand.  Just as you will in your projects, we're going to start by creating an ERD (Entity Relationship Diagram).  When you're building out an ERD, you'll occasionaly have fields that either don't end up in your final product, or get added along the way.  **Thinking about how your models are related to one another will significantly cut down on issues you'll run into when you start writing code.**
-#
+
+
 ### Let's spend a few minutes discussing the following ERD:
-## 
+
 ![ERD](https://i.imgur.com/e18W2sB.png)
 
 ### Now that we have a good idea of what our models look like and what relationships they'll have with one another, we can plan out the steps we'll need to take to build everything out.
-##
-# 
+
 ___
 ## Many Users >--< Many Stories!
 
@@ -92,7 +97,9 @@ ___
 - AAU, I should be able to join the ‘Chat Room’
 - AAU, I should see all other current members in the ‘Chat Room’
 - AAU, I should be able to post/view real-time messages to/from the chat screen
-# 
+
+<br>
+
 ## Roadmap:
 ### 1. <s>Create the express app</s>
 ### 2. <s>Implement authentication</s>
@@ -129,7 +136,6 @@ ___
 ___
 
 ## 'Profile' View:
-#
 ### For the first few steps, I'll write out the steps for the 5-step cycle.  From there on, we'll be in a rhythm!!!
 
 #### Step 1: Determine the method verb & route:
@@ -570,6 +576,305 @@ function show(req, res) {
   axios
     .get(`https://api.rawg.io/api/games/${req.params.slug}`)
     .then((response) => {
+      res.render("games/show", {
+        title: "Game Details",
+        user: req.user,
+        game: response.data
+      }); 
+    });
+};
+```
+#### Now, for the games/show.ejs!  There's a lot of space here for future additions, so be sure to check out all the comments:
+```html
+<%- include('../partials/header') %>
+<h3>Game Details Page</h3>
+<% if (game.clip != null) { %>
+  <video width="480" height="320" controls="controls">
+    <source src="<%= game.clip.clips.full %>" type="video/mp4">
+  </video>
+    <% } %>
+    <div class="card" style="width: 36rem;">
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="gameinfo-tab" data-toggle="tab" href="#gameinfo" role="tab" aria-controls="gameinfo" aria-selected="true">Game Info</a>
+        </li>
+        <!-- This is the tab header for the list of who has the game in their collection -->
+        <li class="nav-item">
+          <a class="nav-link" id="favorited-tab" data-toggle="tab" href="#favorited" role="tab" aria-controls="favorited" aria-selected="false">Owned By</a>
+        </li>
+        <!-- This is the tab header for reviews -->
+        <li class="nav-item">
+          <a class="nav-link" id="reviews-tab" data-toggle="tab" href="#reviews" role="tab" aria-controls="reviews" aria-selected="false">Reviews</a>
+        </li>
+      </ul>
+      <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="gameinfo" role="tabpanel" aria-labelledby="gameinfo-tab">
+          <div class="card-body">
+            <h5 class="card-title"><%= game.name %> </h5>
+            <p class="card-text">Released: <%= game.released %></p>
+            <p class="card-text"><%= game.description_raw %></p>
+            <p>Platforms:</p>
+            <% game.platforms.forEach(p => { %>
+              <p class="card-text"><%= p.platform.name %></p>
+            <% }) %>
+            <p class="card-text">Metacritic Score: <%= game.metacritic ? game.metacritic : 'N/A' %></p>
+          </div>
+        </div>
+        <!-- This is the tab that will contain our forEach loop indicating who has the game in their collection -->
+        <div class="tab-pane fade" id="favorited" role="tabpanel" aria-labelledby="favorited-tab">
+          <div class="card-body">
+            <p>Owned By:</p>
+            <!-- This is where we'll put our favoritedBy.forEach loop -->
+          </div>
+        </div>
+        <!-- This is the tab that holds the review info for a game -->
+        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+           <!--This is where we'll put all the info for reviews  -->
+        </div>
+      </div>
+      
+    <!-- This is where we'll put a button to add/remove a game to/from our collection -->
+    <!-- This is where we'll put a button to add/remove a game to/from our watchlist -->
+ 
+<%- include('../partials/footer') %>
+```
+#### Now we're checking out games!
+##
+### Next, let's add the ability for a user to add a game to their watchlist.  Let's start by adding to our model.  We'll need to embed the watchList within the user model:
+```js
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+
+const watchListSchema = new Schema(
+  {
+    title: String,
+    slug: String,
+    released: Date,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const userSchema = new Schema(
+  {
+    name: String,
+    alias: String,
+    email: String,
+    avatar: String,
+    googleId: String,
+    bio: String,
+    friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    watchList: [watchListSchema],
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model("User", userSchema);
+```
+#### Next, let's add those buttons we left space for on our games/show.ejs:
+```html
+<% if (user.watchList.some(g => {return g.slug === game.slug})) { %>
+  <form action="/games/<%= game.slug %>/watch?_method=DELETE" method="POST">
+<% } else { %>
+  <form action="/games/<%= game.slug %>/watch" method="POST">
+<% } %>
+  <input type="text" hidden name="title" value="<%= game.name %>">
+  <input type="text" hidden name="slug" value="<%= game.slug %>">
+  <input type="date" hidden name="released" value="<%= game.released %>">
+  <button class="btn btn-success"><%= user.watchList.some(g => {return g.slug === game.slug}) ? "Unwatch" : "Watch" %></button>
+</form>
+```
+#### Notice the way we're using conditional rendering for both the opening <form> tag AND the button!  Ternary statements are great!!!
+#### We just wrote two routes for watching/unwatching games.  Let's go add em to the router:
+```js
+router.post("/:slug/watch", isLoggedIn, gamesCtrl.addToWatchList);
+router.delete("/:slug/watch", isLoggedIn, gamesCtrl.removeFromWatchList);
+```
+#### Now the controller functions:
+```js
+function addToWatchList(req, res) {
+  req.user.watchList.push(req.body);
+  req.user.save().then(() => {
+    res.redirect(`/games/${req.body.slug}`);
+  });
+}
+
+function removeFromWatchList(req, res) {
+  let idx = req.user.watchList.findIndex((g) => g.slug === req.params.slug);
+  req.user.watchList.splice(idx, 1);
+  req.user.save().then(() => {
+    res.redirect(`/games/${req.body.slug}`);
+  });
+}
+```
+#### No need to render a view, as we're just redirecting to our current page.  Now we're watching games!  Let's go update our user profile tab to reflect the changes!
+```html
+<div class="tab-pane fade show" id="watchlist" role="tabpanel" aria-labelledby="watchlist-tab">
+        <div class="card-body">
+        <!-- This is where we'll use a forEach to display watchlist items -->
+        <!-- New code below: -->
+        <% user.watchList.forEach(g => { %>
+          <a href="/games/<%= g.slug %>"><p><%= g.title %></p></a>
+        <% }) %>
+        </div>
+      </div>
+```
+#### Another piece of functionality!  Huzzah!
+##
+### Adding a game to a user's collection:
+##
+#### Let's start by creating a button on our games/show.ejs view for a route to add/remove a game from the user's collection:
+```html
+<% if (favoritedBy.some(u => {return u.email === user.email})) { %>
+  <form action="/games/<%= game.slug %>/collection?_method=DELETE" method="POST">
+    <% } else { %>
+  <form action="/games/<%= game.slug %>/collection" method="POST">
+<% } %>
+  <input type="text" hidden name="title" value="<%= game.name %>">
+  <input type="date" hidden name="released" value="<%= game.released %>">
+  <input type="number" hidden name="metacriticScore" value="<%= game.metacritic %>">
+  <input type="text" hidden name="videoUrl" value="<%= game.clip ? game.clip.clips.full : "" %>">
+  <input type="text" hidden name="imageUrl" value="<%= game.background_image %>">
+  <input type="number" hidden name="rawgId" value="<%= game.id %>">
+  <input type="text" hidden name="slug" value="<%= game.slug %>">
+  <button class="btn btn-warning"><%= favoritedBy.some(u => {return u.email === user.email}) ? "Remove from Collection" : "Add to Collection" %></button>
+  </form>
+```
+#### Notice that we're using the same type of conditional rendering for the form type and ternary magic for the button text that we did for the watchlist!  
+#### Next, the two routes:
+```js
+router.post("/:slug/collection", isLoggedIn, gamesCtrl.addToCollection);
+router.delete("/:slug/collection", isLoggedIn, gamesCtrl.removeFromCollection);
+```
+#### And then the controller functions:
+```js
+function addToCollection(req, res) {
+  req.body.favoritedBy = req.user._id;
+  Game.findOne({ slug: req.body.slug }).then((game) => {
+    // Notice that we have to check to see whether the game is already in the database.  
+    // This is done to prevent duplicate game entries, which would cause headaches for handling reviews!
+      // If the query returns a game, push the user's id to the favorite field.
+    if (game) {
+      game.favoritedBy.push(req.user._id);
+      game.save().then(() => {
+        res.redirect(`/games/${req.body.slug}`);
+      });
+    } else {
+        // If not, create a new game in the database (with the user's id attached in req.body)
+      Game.create(req.body).then(res.redirect(`/games/${req.body.slug}`));
+    }
+  });
+}
+
+function removeFromCollection(req, res) {
+  Game.findOne({ slug: req.params.slug }).then((game) => {
+    let idx = game.favoritedBy.indexOf(req.user._id);
+    game.favoritedBy.splice(idx, 1);
+    game.save().then(() => {
+      res.redirect(`/games/${req.params.slug}`);
+    });
+  });
+}
+```
+#### We're adding and removing to the collection, so let's go add this to our user show view so we can see our friends' games.  Start by updating the users show controller function (we need to query for games after getting the user by id)
+```js
+function show(req, res) {
+  User.findById(req.params.id).then((userInfo) => {
+    Game.find({ favoritedBy: userInfo._id }).then((games) => {
+      res.render("users/show", {
+        title: "User Details",
+        userInfo,
+        user: req.user,
+        games,
+      });
+    });
+  });
+}
+```
+#### Now let's adjust the users/show.ejs to reflect having access to the games:
+```html
+<%- include('../partials/header') %>
+
+<h3>User Detail Page</h3>
+
+<div class="card" style="width: 18rem;">
+  <img id="avatarPhoto" style="height: 18rem;" class="card-img-top" src="<%= userInfo.avatar ? userInfo.avatar : 'http://theoldreader.com/kittens/300/300/'  %>" alt="Card image cap">
+  <div class="card-header">
+  </div>
+  <div class="card-body">
+    <h5 class="card-title"><%= userInfo.name %></h5>
+    <p class="card-text">Joined: <%= userInfo.createdAt.toLocaleString().split(',')[0] %></p>
+    <p class="card-text">Email: <a href="mailto:<%= userInfo.email %>"><%= userInfo.email %></a></p>
+    <p class="card-text">Favorite Games:</p>
+    <% games.forEach(game => { %>
+      <a href="/games/<%= game.slug %>"><%= game.title %></a><br>
+    <% }) %><br>
+    <% if (!userInfo._id.equals(user._id) && !user.friends.includes(userInfo._id)) { %>
+      <a href="/users/<%= userInfo._id %>/friend" class="btn btn-primary">Add Friend</a>
+    <% } %>
+    <% if (!userInfo._id.equals(user._id) && user.friends.includes(userInfo._id)) { %>
+      <a href="/users/<%= userInfo._id %>/unfriend" class="btn btn-primary">Remove Friend</a>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+```
+#### Cross another item off the list!  Now all we've got left is showing our personal game collection and adding reviews.  Let's tackle the game collection first.
+##
+### Adding a view for 'Game Collection'  
+##
+#### Start with the UI.  We have an empty link in the navbar.  Let's give it a route and give it a purpose in life.
+```html
+<li class="nav-item">
+  <a class="nav-link" href="/games">Game Collection</a>
+</li>
+```
+#### Next, the route:
+```js
+router.get("/", isLoggedIn, gamesCtrl.index);
+```
+#### And the controller function:
+```js
+function index(req, res) {
+  Game.find({ favoritedBy: req.user._id }).then((games) => {
+    res.render("games/index", {
+      title: "Game Collection",
+      user: req.user,
+      games,
+    });
+  });
+}
+```
+#### Next, we'll need to create and code out our games/index.ejs:
+```html
+<%- include('../partials/header') %>
+
+<h3>Game Collection</h3>
+
+<% games.forEach(game=> { %>
+  <div class="card" style="width: 18rem;">
+    <img src="<%= game.imageUrl %>" class="card-img-top" alt="...">
+    <div class="card-body">
+      <h5 class="card-title"><%= game.title %> </h5>
+      <p class="card-text">Released: <%= game.released.toLocaleString().split(',')[0] %></p>
+      <p class="card-text">Metacritic Score: <%= game.metacriticScore ? game.metacriticScore : 'N/A' %></p>
+      <a href="/games/<%= game.slug %>" class="btn btn-primary">Details</a>
+    </div>
+  </div>
+<% }) %>
+
+<%- include('../partials/footer') %>
+```
+#### Let's add the last piece of the game-puzzle:  Reviews.  This is going to take a little refactoring in a few places, but after all the work we've done, it shouldn't be too hard!  Let's adjust the controller function for our games/show page first to handle passing a little more information.  We need to know IF the game is in the database, so our function becomes a little more complicated:
+```js
+function show(req, res) {
+  axios
+    .get(`https://api.rawg.io/api/games/${req.params.slug}`)
+    .then((response) => {
       Game.findOne({ slug: response.data.slug })
         .populate("favoritedBy")
         .then((game) => {
@@ -578,30 +883,581 @@ function show(req, res) {
               title: "Game Details",
               user: req.user,
               game: response.data,
+              favoritedBy: game.favoritedBy,
               gameId: game._id,
+              reviews: game.reviews,
             });
           } else {
-            // Is this really necessary?
             res.render("games/show", {
               title: "Game Details",
               user: req.user,
               game: response.data,
+              favoritedBy: [""],
+              reviews: [""],
             });
           }
         });
     });
 }
+```
+#### Next, the UI:  Let's add it to the games/show page.  Let's also make it so that a user can't review a game unless they've added it to their favorites AND can only add a single review:
+```html
+<!--This is where we'll put all the info for reviews  -->
+<% let total = 0 %>
+<% reviews.forEach(r => { %>
+  <% total+= r.rating %>
+  <p><%= r.rating %> - <img width="20" id="avatarPhoto" src="<%= r.reviewerPhoto %>" alt=""> <%= r.reviewer %></p>
+  <p><%= r.content %></p>
+<% }) %>
+<p>GameGoose Score: <%= (total / reviews.length).toFixed(2) %></p>
+<% if (!reviews.some(u => {return u.reviewer === user.name}) && favoritedBy.some(u => {return u.email === user.email})) { %>
+  <form action="/games/<%= gameId %>/reviews" method="POST">
+    <div class="form-group">
+      <textarea class="form-control" name="content" style="width: 18rem;" id="exampleFormControlTextarea1" placeholder="Leave a Review" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="exampleFormControlSelect1">Rating</label>
+      <select style="width: 18rem;" class="form-control" name="rating" id="exampleFormControlSelect1">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>8</option>
+        <option>9</option>
+        <option>10</option>
+      </select>
+    </div>
+    <input type="text" hidden name="reviewer" value="<%= user.name %>">
+    <input type="text" hidden name="reviewerPhoto" value="<%= user.avatar %>"> 
+    <button class="btn btn-info">Submit</button>
+  </form>
+<% } %>
+```
+#### Notice how we're adding the user's avatar and name to the review in HIDDEN fields before sending it in the form?  Tricky!!!
+#### We're gonna need a new router/controller to handle reviews, as they're an embedded resource.  We can do it while we write the route!
+```js
+// additions to server.js:
+const reviewsRouter = require("./routes/reviews");
+.
+. // middleware lives here...
+.
+app.use("/", reviewsRouter);
 
 ```
-#### Now we're checking out games!
+```js
+// routes/reviews.js:
+const router = require("express").Router();
+const reviewsCtrl = require("../controllers/reviews");
 
-# More tomorrow:
-### 13. 'Watchlist' functionality
-### 14. 'Add to collection' functionality
-### 15. 'Reviews' functionality
-### 16. 'Game collection' view
-### 17. 'Message Board' functionality
-### 18. 'Reply' functionality
-### 19. Implement real-time chat functionality
+router.post("/games/:id/reviews", isLoggedIn, reviewsCtrl.create);
+
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect("/auth/google");
+}
+
+module.exports = router;
+```
+```js
+// controllers/reviews.js:
+const Game = require("../models/game");
+
+module.exports = {
+  create,
+};
+
+function create(req, res) {
+  Game.findById(req.params.id).then((game) => {
+    game.reviews.push(req.body);
+    game.save().then(() => {
+      res.redirect(`/games/${game.slug}`);
+    });
+  });
+}
+```
+#### Now that we're posting reviews, we should see them showing up on the games/show page!
+##
+### We've got all the 'game' and 'user' funcitonality of our app built out.  Now, we're going to focus on messaging utility.  We'll start by adding a 'Message Board' where users will be able to make posts, then we'll add a 'reply' ability so that users can post replies.
+#
+#### Let's start by adding some models.  We'll need a model for 'messages' first.  We'll embed a reply schmema inside of it:
+```js
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+
+const replySchema = new Schema({
+  postedBy: String,
+  avatar: String,
+  message: String,
+});
+
+const messageSchema = new Schema(
+  {
+    postedBy: String,
+    avatar: String,
+    title: String,
+    replies: [replySchema],
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model("Message", messageSchema);
+```
+#### Nothing we haven't seen before!  Let's go add a router and a controller as well:
+```js
+// server.js
+const messagesRouter = require("./routes/messages");
+.
+. // middleware lives here
+.
+app.use("/messages", messagesRouter);
+```
+#### Let's create our 'Message Board' page next.  That'll require adding a UI to our nav bar in the location we've earmarked for it:
+```html
+<li class="nav-item">
+  <a class="nav-link" href="/messages">Message Board</a>
+</li>
+```
+#### Next, the route:
+```js
+router.get("/", isLoggedIn, messagesCtrl.index);
+```
+#### Then the controller function:
+```js
+function index(req, res) {
+  Message.find({}).then((messages) => {
+    res.render("messages/index", {
+      title: "Message Board",
+      user: req.user,
+      messages: messages.reverse(),
+    });
+  });
+}
+```
+#### Let's go create the view next:
+```html
+<%- include('../partials/header') %>
+
+<h3>Message Board</h3>
+<form action="/messages" method="POST">
+  <div class="form-group">
+    <input type="text" class="form-control" aria-describedby="message" name="title" placeholder="Enter message...">
+  </div>
+  <button type="submit" class="btn btn-success">Create Post</button>
+</form>
+
+<% messages.forEach(message => { %>
+  <div class="card">
+    <div class="card-header">
+      <%= message.postedBy %> <img id="avatarPhoto" width="30" src="<%= message.avatar %>" alt="">
+    </div>
+    <div class="card-body">
+      <h5 class="card-title"><%= message.title %></h5>
+      <h6><%= message.createdAt.toLocaleString()%></h6>
+      <a href="/messages/<%= message._id %>" class="btn btn-primary">See Post</a>
+    </div>
+  </div>
+<% }) %>
+
+<%- include('../partials/footer') %>
+```
+##
+#### We've got another route now, back to the router!
+```js
+router.post("/", isLoggedIn, messagesCtrl.create);
+```
+#### Then on to the controller:
+```js
+function create(req, res) {
+  req.body.postedBy = req.user.name;
+  req.body.avatar = req.user.avatar;
+  Message.create(req.body).then(() => {
+    res.redirect("/messages");
+  });
+}
+```
+#### Now that we've got the posts down, we'll need a show page to view a post so that we're able to add replies.  Start with the route we set up in the messages.forEach loop on our index page:
+```js
+router.get("/:id", isLoggedIn, messagesCtrl.show);
+```
+#### Then the controller:
+```js
+function show(req, res) {
+  Message.findById(req.params.id).then((message) => {
+    res.render("messages/show", {
+      title: "Message Details",
+      user: req.user,
+      message,
+    });
+  });
+}
+```
+#### We'll need to create a show page for the messages next:
+```html
+<%- include('../partials/header') %>
+
+<h3>Message Details</h3>
+<h4><%= message.title %></h4>
+<h5>Posted on <%= message.createdAt.toLocaleString() %> - <%= message.postedBy %> <img id="avatarPhoto" width="30" src="<%= message.avatar %>" alt=""></h5>
+
+<% message.replies.forEach(reply => { %>
+    <h6><%= reply.message %> - <%= reply.postedBy %> <img id="avatarPhoto" width="25" src="<%= reply.avatar %>" alt=""></h6>
+<% }) %>
+
+<form action="/messages/<%= message._id %>" method="POST">
+  <div class="form-group">
+    <input type="text" class="form-control" aria-describedby="message" name="message" placeholder="Enter reply...">
+  </div>
+  <button type="submit" class="btn btn-primary">Reply</button>
+</form>
+
+<%- include('../partials/footer') %>
+```
+#### We just set ourselves up with the last route we'll need to add replies.  Let's go write it in our router:
+```js
+router.post("/:id", isLoggedIn, messagesCtrl.reply);
+```
+#### Our last controller function!  Is it really almost all over?!?!?! (Of course not, we still have a CHAT ROOM to build!!!)
+```js
+function reply(req, res) {
+  Message.findById(req.params.id).then((message) => {
+    req.body.postedBy = req.user.name;
+    req.body.avatar = req.user.avatar;
+    message.replies.push(req.body);
+    message.save().then(() => {
+      res.redirect(`/messages/${req.params.id}`);
+    });
+  });
+}
+```
+#### Now we're replying to posts!
+##
+### The last piece of functionality we'll be adding to our application will utilize socket.io to implement a live-chat 'room' where users will be able to message one another, see if someone is typing, and hear some fun sounds on certain events (people entering/leaving the 'room').
+#### Let's talk a little bit about how socket.io works before we start writing code.
+
+#### Detour:[Socket.io](https://socket.io/docs/)
+
+####  Now that you've gotten an idea of what we'll be implementing, let's go write a route/controller/view to handle navigating to the 'chat room.'
+#### Let's start by creating a module to handle all of our server-side socket.io stuff.  We also need to install the socket.io npm package:
+```
+touch io.js
+npm i socket.io
+```
+#### Head back into the bin/www file and make sure we're loading socket.io when we start the server:
+```js
+const server = http.createServer(app);
+// Existing code above
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+const io = require('../io')
+io.attach(server)
 
 
+```
+#### Inside of the io.js, we'll need to require the module, then we'll export the contents as io:
+```js
+const io = require('socket.io')()
+
+// defining an empty object to hold a list of 'chatters'
+let chatters = {}
+
+
+io.on('connection', (socket) => {
+  // This is where all of our server-side socket.io functionality will exist.  
+
+    // When anyone 'enters the room (loads the page)', add them to the list and play a sound
+
+    // When anyone 'leaves the room (navigates away from the page)', remove them from the list and play a sound
+
+    // When anyone sends a message, send the message to all of the connected clients and play a sound
+
+    // When anyone presses a key while typing a message, display a '(user) is typing...' message to all clients
+})
+
+module.exports = io
+```
+#### First, the model.  It's exceptionally simple:
+```js
+// models/chat.js
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+
+const chatSchema = new Schema(
+  {
+    username: String,
+    avatar: String,
+    message: String,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model("Chat", chatSchema);
+```
+#### Next, let's add a UI to our navbar:
+```html
+<li class="nav-item">
+  <a class="nav-link" href="/chatroom">Chat Room</a>
+</li>
+```
+#### Let's add our router/controller next:
+```js
+// server.js
+const chatRouter = require('./routes/chat');
+.
+. // middleware, HOOOOOOO!!!!!
+.
+app.use('/chatroom', chatRouter);
+```
+```js
+// routes/chat.js
+const router = require('express').Router();
+const chatCtrl = require('../controllers/chat');
+
+router.get("/", isLoggedIn, chatCtrl.chatRoom);
+
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect("/auth/google");
+}
+
+module.exports = router;
+```
+```js
+// controllers/chat.js
+function chatRoom(req, res) {
+  res.render("chatroom", {
+    title: "Chat Room",
+    user: req.user,
+  });
+}
+```
+#### We know the drill.  Let's write the view next:
+```html
+<%- include('partials/header') %>
+
+<h3>Live Chat Room</h3>
+<p>Users in the room:</p>
+<!-- Notice the <ul> here that we'll be appending chatroom users to! -->
+<ul id="chatters"></ul>
+<input type="text" id="avatar" hidden name="avatar" value="<%= user.avatar %>">
+<input type="text" hidden name="username" value="<%= user.name %>" id="username">
+<input type="text" id="message">
+<a class="btn btn-info" href="#" id="send_message">Send Message</a>
+<!-- Oh, this is gonna be COOL!  We're gonna display when someone is typing! -->
+<p id="isTyping"></p>
+<div id="chatroom"></div>
+<!-- This is where we'll loop over the chats with a forEach -->
+
+<!-- We need to bring in a JavaScript file for this!!! -->
+<script src="/javascripts/chat.js"></script>
+<%- include('partials/footer') %>
+```
+#### Because we'll need to run JavaScript client-side, we'll need to add a script file to be loaded into our view whenever we navigate to the 'chat room' view.  Make sure it lives inside a directory within the public folder named 'scripts.'
+# WARNING:  YOU ARE ABOUT TO SEE CODE THAT YOU USED IN UNIT 1.  DO NOT BE AFRAID!!!
+```js
+// First, we need to define our socket as the io we've exported on our server
+let socket = io()
+
+// OMG, CACHED ELEMENT REFERENCES?!?!? NO WAI!!!!
+let message = document.getElementById("message");
+let username = document.getElementById("username");
+let send_message = document.getElementById("send_message");
+let chatroom = document.getElementById("chatroom");
+let avatar = document.getElementById("avatar");
+let isTyping = document.getElementById("isTyping");
+let chatters = document.getElementById("chatters");
+
+// Event listeners (No, you're not having a flashback.  Everything will be ok!)
+
+  
+  // When 'send message' is clicked, emit a message containing the chat info to the server
+
+  // When a user presses the 'Enter' key, emit a message containing the chat info to the server
+
+  // When a user presses a key while typing in the 'message' element, send the user's name to the server
+
+// Socket events
+
+  // Define/execute a function to get the username from the server so that it can be broadcast on connection
+
+  // When the socket receives an updated chat list, re-render the list of users connected
+
+  // When a user enters the room, play a sound
+
+  // When a user leaves the room, play a sound
+
+  // When someone is typing (something we'll need the server to tell us), adjust the 'isTyping' element to reflect that
+
+  // When a new message is posted, play a sound, update the newMessage element with the message/user info, and add the message to the database (we'll check server-side to make sure the message is only posted once, by checking the id of the user making the post)
+```
+#### We've got quite the list to accomplish...  Let's play around with some of the basic stuff first.  Let's knock out the sounds for when a user enters/exits a room:
+```js
+// io.js
+
+const io = require('socket.io')()
+
+
+let chatters = {}
+
+io.on('connection', (socket) => {
+  
+  socket.on('register-user', () => {
+    io.emit('user-enter')
+  });
+
+  socket.on('disconnect', () => {
+    io.emit('user-exit')
+  });
+})
+
+module.exports = io
+
+```
+#### Let's go write the matching socket.on methods on the client-side:
+```js
+// chat.js
+socket.on("user-enter", () => {
+  enterAudio.play();
+});
+
+socket.on("user-exit", () => {
+  exitAudio.play();
+});
+```
+#### See where we're going with this?  Let's add a function that loads the user info when the script loads and emits that to the server:
+
+```js
+// chat.js
+
+function getUserName() {
+  fetch("/users/getName").then((response) => {
+    return response.json().then((data) => {
+      socket.emit("register-user", data);
+    });
+  });
+}
+
+getUserName();
+```
+#### Whooooa, there!  That's a route we don't have yet.  Let's go add it to routes/users.js:
+```js
+router.get("/getName", isLoggedIn, usersCtrl.getName);
+```
+#### Then a matching function:
+```js
+function getName(req, res) {
+  res.json(req.user.name);
+}
+```
+#### Seriously?  That may be the shortest controller function ever.  Now that we've got our user's name, we need to go add the 'register-user' socket listener in io.js.  Let's add an item to update the chatter-list, too!:
+```js
+ socket.on('register-user', (username) => {
+    chatters[socket.id] = username;
+    io.emit('update-chatter-list', Object.keys(chatters).map(id => chatters[id]));
+    io.emit('user-enter')
+  });
+
+  socket.on('disconnect', () => {
+    delete chatters[socket.id];
+    io.emit('user-exit')
+    io.emit('update-chatter-list', Object.keys(chatters).map(id => chatters[id]));
+  });
+
+```
+#### Back to chat.js to make the matching listener to update the page:
+```js
+socket.on("update-chatter-list", (data) => {
+  var chatterList = "<li>" + data.join("</li><li>") + "</li>";
+  chatters.innerHTML = chatterList;
+});
+```
+#### Let's put in our '... is typing...' functionality next, now that we have the user name!:
+```js
+// chat.js
+message.addEventListener("keypress", () => {
+  socket.emit("typing", { username: username.value });
+});
+```
+#### And we'll match it with a broadcast emitter (this will send it to all clients EXCEPT the one initiating it):
+```js
+// io.js
+  socket.on('typing', (data) => {
+    socket.broadcast.emit('typing', {username: data.username})
+  })
+```
+#### Now, for the magic to happen we'll need to add a final socket.on to our chat.js and render the '... is typing...' message on the page:
+```js
+// chat.js
+
+socket.on("typing", (data) => {
+  isTyping.innerText = `${data.username} is typing...`;
+});
+```
+#### Sweet!  All that's left is posting the message and having the data persist to the database!  Let's start with the client-side event:
+```js
+// chat.js
+
+socket.on("new_message", (data) => {
+  isTyping.innerText = "";
+  messageAudio.play();
+  let newMessage = document.createElement("p");
+  newMessage.innerHTML = `<p><img id="avatarPhoto" height="30" src="${data.avatar}" alt=""> ${data.username}: ${data.message}</p>`;
+  chatroom.prepend(newMessage);
+  fetch("/chatroom", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      avatar: data.avatar,
+      username: data.username,
+      message: data.message,
+    }),
+  });
+});
+```
+#### That's a route!!!  Let's write it out:
+```js
+router.post('/', isLoggedIn, chatCtrl.postChat);
+```
+#### Then the function:
+```js
+function postChat(req, res) {
+  if (req.body.username === req.user.name) {
+    Chat.create(req.body).then(() => {
+      res.status(201).send("Added");
+    });
+  } else {
+    res.status(208).send("Already added");
+  }
+}
+```
+#### Notice how we're preventing multiple entries by checking to make sure the person posting is the person currently logged in!  We're handling the data being stored in the database, let's go add the last emitter on the server:
+```js
+// io.js
+
+  socket.on('new_message', (data) => {
+    io.sockets.emit('new_message', {message: data.message, username: data.username, avatar: data.avatar})
+  })
+```
+#### The final piece of this application's giant puzzle is to update the chatRoom function to display the last 150 (or so) messages when the chat room is first loaded, that way the user can get in on the most relevant conversation:
+```js
+function chatRoom(req, res) {
+  Chat.find({})
+    .sort({ _id: -1 })
+    .limit(150)
+    .then((chats) => {
+      res.render("chatroom", {
+        title: "Chat Room",
+        user: req.user,
+        chats: chats,
+      });
+    });
+}
+```
+#### IT'S OVER!!!!!!
