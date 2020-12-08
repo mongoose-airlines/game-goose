@@ -1,8 +1,6 @@
 # GameGoose Code-along
-## 
 
 ## Setup Instructions:
-___
 ### Start by cloning the codealong repo to your machine, installing node modules, and opening the project in vs code:
 
 ```
