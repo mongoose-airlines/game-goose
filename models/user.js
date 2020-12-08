@@ -9,6 +9,7 @@ const userSchema = new Schema(
     avatar: String,
     googleId: String,
     bio: String,
+    friends: [{type: Schema.Types.ObjectId, ref: "User"}]
   },
   {
     timestamps: true,
