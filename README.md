@@ -3,7 +3,7 @@
 
 ## Setup Instructions:
 ___
-### Start by cloning the codealong repo to your machine, installing node modules, and opening the project in vsco:
+### Start by cloning the codealong repo to your machine, installing node modules, and opening the project in vs code:
 
 ```
 git clone https://github.com/mongoose-airlines/game-goose.git
