@@ -6,7 +6,9 @@ module.exports = {
   search,
   show,
   addToWatchList,
-  removeFromWatchList
+  removeFromWatchList,
+  addToCollection,
+  removeFromCollection
 }
 
 function newGame(req, res) {
@@ -34,11 +36,25 @@ function show(req, res) {
   axios
     .get(`https://api.rawg.io/api/games/${req.params.slug}`)
     .then((response) => {
-      res.render("games/show", {
-        title: "Game Details",
-        user: req.user,
-        game: response.data
-      }); 
+      Game.findOne({ slug: response.data.slug })
+      .populate('favoritedBy')
+      .then((game) => {
+        if(game) {
+          res.render("games/show", {
+            title: "Game Details",
+            user: req.user,
+            game: response.data,
+            favoritedBy: game.favoritedBy
+          }); 
+        } else {
+          res.render("games/show", {
+            title: "Game Details",
+            user: req.user,
+            game: response.data,
+            favoritedBy: [""]
+          }); 
+        }
+      })
     });
 }
 
@@ -56,5 +72,36 @@ function removeFromWatchList(req, res) {
   req.user.save()
   .then(() => {
     res.redirect(`/games/${req.body.slug}`)
+  })
+}
+
+function addToCollection(req, res) {
+  Game.findOne({ slug: req.body.slug })
+  .then((game) => {
+    if (game) {
+      game.favoritedBy.push(req.user._id)
+      game.save()
+      .then(() => {
+        res.redirect(`/games/${req.body.slug}`)
+      })
+    } else {
+      req.body.favoritedBy = req.user._id
+      Game.create(req.body)
+      .then(() => {
+        res.redirect(`/games/${req.body.slug}`)
+      })
+    }
+  })
+}
+
+function removeFromCollection(req, res) {
+  Game.findOne({ slug: req.params.slug })
+  .then((game) => {
+    let idx = game.favoritedBy.indexOf(req.user._id)
+    game.favoritedBy.splice(idx, 1)
+    game.save()
+    .then(() => {
+      res.redirect(`/games/${req.body.slug}`)
+    })
   })
 }

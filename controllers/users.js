@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const Game = require("../models/game")
 
 module.exports = {
   index,
@@ -39,10 +40,14 @@ function update(req, res) {
 function show(req, res) {
   User.findById(req.params.id)
   .then((userInfo) => {
-    res.render("users/show", {
-      title: "User Details",
-      userInfo,
-      user: req.user
+    Game.find({ favoritedBy: userInfo._id })
+    .then((games) => {
+      res.render("users/show", {
+        title: "User Details",
+        userInfo,
+        user: req.user,
+        games
+      })
     })
   })
 }

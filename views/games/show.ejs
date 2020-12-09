@@ -46,6 +46,20 @@
       </div>
       
     <!-- This is where we'll put a button to add/remove a game to/from our collection -->
+    <% if (favoritedBy.some(u => {return u.email === user.email})) { %>
+      <form action="/games/<%= game.slug %>/collection?_method=DELETE" method="POST">
+        <% } else { %>
+      <form action="/games/<%= game.slug %>/collection" method="POST">
+    <% } %>
+      <input type="text" hidden name="title" value="<%= game.name %>">
+      <input type="date" hidden name="released" value="<%= game.released %>">
+      <input type="number" hidden name="metacriticScore" value="<%= game.metacritic %>">
+      <input type="text" hidden name="videoUrl" value="<%= game.clip ? game.clip.clips.full : "" %>">
+      <input type="text" hidden name="imageUrl" value="<%= game.background_image %>">
+      <input type="number" hidden name="rawgId" value="<%= game.id %>">
+      <input type="text" hidden name="slug" value="<%= game.slug %>">
+      <button class="btn btn-warning"><%= favoritedBy.some(u => {return u.email === user.email}) ? "Remove from Collection" : "Add to Collection" %></button>
+      </form>
     <!-- This is where we'll put a button to add/remove a game to/from our watchlist -->
     <% if (user.watchList.some(g => {return g.slug === game.slug})) { %>
       <form action="/games/<%= game.slug %>/watch?_method=DELETE" method="POST">
