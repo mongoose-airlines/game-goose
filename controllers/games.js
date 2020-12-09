@@ -4,7 +4,9 @@ const axios = require('axios')
 module.exports = {
   new: newGame,
   search,
-  show
+  show,
+  addToWatchList,
+  removeFromWatchList
 }
 
 function newGame(req, res) {
@@ -38,4 +40,21 @@ function show(req, res) {
         game: response.data
       }); 
     });
+}
+
+function addToWatchList(req, res) {
+  req.user.watchList.push(req.body)
+  req.user.save()
+  .then(() => {
+    res.redirect(`/games/${req.body.slug}`)
+  })
+}
+
+function removeFromWatchList(req, res) {
+  let idx = req.user.watchList.findIndex((g) => g.slug === req.params.slug)
+  req.user.watchList.splice(idx, 1)
+  req.user.save()
+  .then(() => {
+    res.redirect(`/games/${req.body.slug}`)
+  })
 }

@@ -47,5 +47,14 @@
       
     <!-- This is where we'll put a button to add/remove a game to/from our collection -->
     <!-- This is where we'll put a button to add/remove a game to/from our watchlist -->
- 
+    <% if (user.watchList.some(g => {return g.slug === game.slug})) { %>
+      <form action="/games/<%= game.slug %>/watch?_method=DELETE" method="POST">
+    <% } else { %>
+      <form action="/games/<%= game.slug %>/watch" method="POST">
+    <% } %>
+      <input type="text" hidden name="title" value="<%= game.name %>">
+      <input type="text" hidden name="slug" value="<%= game.slug %>">
+      <input type="date" hidden name="released" value="<%= game.released %>">
+      <button class="btn btn-success"><%= user.watchList.some(g => {return g.slug === game.slug}) ? "Unwatch" : "Watch" %></button>
+      </form>
 <%- include('../partials/footer') %>
