@@ -3,7 +3,8 @@ const axios = require('axios')
 
 module.exports = {
   new: newGame,
-  search
+  search,
+  show
 }
 
 function newGame(req, res) {
@@ -25,4 +26,16 @@ function search(req, res) {
         results: response.data.results
       })
     })
+}
+
+function show(req, res) {
+  axios
+    .get(`https://api.rawg.io/api/games/${req.params.slug}`)
+    .then((response) => {
+      res.render("games/show", {
+        title: "Game Details",
+        user: req.user,
+        game: response.data
+      }); 
+    });
 }

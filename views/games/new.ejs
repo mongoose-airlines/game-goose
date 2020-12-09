@@ -25,7 +25,7 @@
         <% }) %>
         <p class="card-text">Metacritic Score: <%= game.metacritic ? game.metacritic : 'N/A' %></p>
         <!-- This is a button that we'll use to navigate to the game's 'show' page.  We still need to fill in the route -->
-        <a href="" class="btn btn-primary">Details</a>
+        <a href="/games/<%= game.slug %>" class="btn btn-primary">Details</a>
       </div>
     </div>
   <% }) %>
