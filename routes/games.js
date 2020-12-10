@@ -2,6 +2,7 @@ const router = require('express').Router()
 const gamesCtrl = require('../controllers/games')
 
 router.get('/new', isLoggedIn, gamesCtrl.new)
+router.get('/', isLoggedIn, gamesCtrl.index)
 router.post('/search', isLoggedIn, gamesCtrl.search)
 router.get('/:slug', isLoggedIn, gamesCtrl.show)
 router.post('/:slug/watch', isLoggedIn, gamesCtrl.addToWatchList)

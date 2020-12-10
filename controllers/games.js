@@ -8,7 +8,8 @@ module.exports = {
   addToWatchList,
   removeFromWatchList,
   addToCollection,
-  removeFromCollection
+  removeFromCollection,
+  index
 }
 
 function newGame(req, res) {
@@ -102,6 +103,17 @@ function removeFromCollection(req, res) {
     game.save()
     .then(() => {
       res.redirect(`/games/${req.body.slug}`)
+    })
+  })
+}
+
+function index(req, res) {
+  Game.find({ favoritedBy: req.user._id })
+  .then((games) => {
+    res.render('games/index', {
+      title: "Game Collection",
+      user: req.user,
+      games
     })
   })
 }

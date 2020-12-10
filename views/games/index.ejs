@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+
+<h3>Game Collection</h3>
+
+<% games.forEach(game=> { %>
+  <div class="card" style="width: 18rem;">
+    <img src="<%= game.imageUrl %>" class="card-img-top" alt="...">
+    <div class="card-body">
+      <h5 class="card-title"><%= game.title %> </h5>
+      <p class="card-text">Released: <%= game.released.toLocaleString().split(',')[0] %></p>
+      <p class="card-text">Metacritic Score: <%= game.metacriticScore ? game.metacriticScore : 'N/A' %></p>
+      <a href="/games/<%= game.slug %>" class="btn btn-primary">Details</a>
+    </div>
+  </div>
+<% }) %>
+
+<%- include('../partials/footer') %>
