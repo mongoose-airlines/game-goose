@@ -45,14 +45,17 @@ function show(req, res) {
             title: "Game Details",
             user: req.user,
             game: response.data,
-            favoritedBy: game.favoritedBy
+            favoritedBy: game.favoritedBy,
+            gameId: game._id,
+            reviews: game.reviews
           }); 
         } else {
           res.render("games/show", {
             title: "Game Details",
             user: req.user,
             game: response.data,
-            favoritedBy: [""]
+            favoritedBy: [""],
+            reviews: [""]
           }); 
         }
       })
